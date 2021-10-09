@@ -120,8 +120,17 @@ workflows:
             echo "Saved provisioning profile $PROFILE_PATH"
         - name: Add signing certificate to keychain
           script: |
+            # echo $CM_CERTIFICATE | base64 --decode > /tmp/certificate.p12
+            # keychain add-certificates --certificate /tmp/certificate.p12
+            
             echo $CM_CERTIFICATE | base64 --decode > /tmp/certificate.p12
-            keychain add-certificates --certificate /tmp/certificate.p12
+            if [ -z ${CM_CERTIFICATE_PASSWORD+x} ]; then
+              # when using a certificate that is not password-protected
+              keychain add-certificates --certificate /tmp/certificate.p12
+            else
+              # when using a password-protected certificate
+              keychain add-certificates --certificate /tmp/certificate.p12 --certificate-password $CM_CERTIFICATE_PASSWORD
+            fi
         - name: Increment build number
           script: |
             #!/bin/sh
